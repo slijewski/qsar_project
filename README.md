@@ -48,9 +48,41 @@ The project combines knowledge from Cheminformatics and Data Science:
 
 ### Usage
 
-1. Run the application:
+Run the pipeline in order:
 
+1. **Collect data** from ChEMBL API:
    ```bash
+   # Using uv (recommended)
+   uv run 01_data_collection.py
+
+   # Or using python directly
+   python 01_data_collection.py
+   ```
+
+2. **Calculate descriptors** (EDA & Lipinski):
+   ```bash
+   # Using uv (recommended)
+   uv run 02_eda_descriptors.py
+
+   # Or using python directly
+   python 02_eda_descriptors.py
+   ```
+
+3. **Build the model** (Random Forest):
+   ```bash
+   # Using uv (recommended)
+   uv run 03_model_building.py
+
+   # Or using python directly
+   python 03_model_building.py
+   ```
+
+4. **Launch the application**:
+   ```bash
+   # Using uv (recommended)
+   uv run streamlit run app.py
+
+   # Or using streamlit directly
    streamlit run app.py
    ```
 
