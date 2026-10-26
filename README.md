@@ -1,126 +1,33 @@
-# 🧪 EGFR Bioactivity Prediction (QSAR)
+# EGFR bioactivity prediction
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B.svg)](https://streamlit.io/)
+A QSAR regression project using ChEMBL activity data for EGFR. It converts SMILES strings into 1,024-bit Morgan fingerprints and trains a Random Forest to estimate pIC50.
 
-## 📖 Introduction
+RDKit also calculates molecular weight, LogP, hydrogen-bond donors and acceptors. These descriptors are displayed in the app; the regression model uses fingerprints.
 
-This project implements a **QSAR (Quantitative Structure-Activity Relationship)** approach to predict the potency of chemical molecules against the **EGFR (Epidermal Growth Factor Receptor)**. Overexpression of EGFR is a key driver in many cancer types (including lung cancer), making the design of new inhibitors for this protein a cornerstone of modern drug discovery.
+## Run
 
-## ⚖️ Justification
+Use Python 3.12. From this directory:
 
-Traditional drug discovery methods are extremely costly and time-consuming. Applying Machine Learning (ML) allows for early-stage virtual screening of thousands of molecules "in silico," significantly accelerating the drug discovery process and reducing laboratory research costs.
-
-## 🛠️ Methods and Technologies
-
-The project combines knowledge from Cheminformatics and Data Science:
-
-- **Data Collection**: Automated retrieval of bioactivity data (IC50) from the **ChEMBL** database using a dedicated API.
-- **Cheminformatics (RDKit)**:
-  - Calculation of physicochemical descriptors (Lipinski's Rule of 5).
-  - Generation of **Morgan Fingerprints** (1024-bit vectors) representing the 2D structure of molecules.
-- **Machine Learning (Scikit-Learn)**:
-  - Utilizing the **Random Forest Regressor** algorithm to predict pIC50 values.
-  - Data optimization by removing features with low variance.
-- **Deployment**: An interactive **Streamlit** dashboard for predicting drug potency based on SMILES codes.
-
-## 🚀 Installation & Usage
-
-### Installation
-
-1. Navigate to the project folder:
-
-   ```bash
-   cd qsar_project
-   ```
-
-2. Install the required libraries:
-
-   ```bash
-   # Using uv (recommended)
-   uv sync
-
-   # Or using pip
-   pip install -r requirements.txt
-   ```
-
-### Usage
-
-Run the pipeline in order:
-
-1. **Collect data** from ChEMBL API:
-   ```bash
-   # Using uv (recommended)
-   uv run 01_data_collection.py
-
-   # Or using python directly
-   python 01_data_collection.py
-   ```
-
-2. **Calculate descriptors** (EDA & Lipinski):
-   ```bash
-   # Using uv (recommended)
-   uv run 02_eda_descriptors.py
-
-   # Or using python directly
-   python 02_eda_descriptors.py
-   ```
-
-3. **Build the model** (Random Forest):
-   ```bash
-   # Using uv (recommended)
-   uv run 03_model_building.py
-
-   # Or using python directly
-   python 03_model_building.py
-   ```
-
-4. **Launch the application**:
-   ```bash
-   # Using uv (recommended)
-   uv run streamlit run app.py
-
-   # Or using streamlit directly
-   streamlit run app.py
-   ```
-
-2. Examples:
-   - Aspirin: CC(=O)Oc1ccccc1C(=O)O - doesn't possess EGFR inhibitory activity
-   - Paracetamol: CC(=O)Nc1ccc(O)cc1 - doesn't possess EGFR inhibitory activity
-   - Gefitinib: O=C(c1ccc(Nc2cncc3ccccc23)cc1)Nc1ccc(Cl)c(F)c1 - possesses EGFR inhibitory activity
-   - Erlotinib: COCCOC1=C(C=C2C(=C1)C(=NC=N2)NC3=CC=CC(=C3)C#C)OCCOC - known EGFR inhibitor
-   - Afatinib: CN(C)CC=CC(=O)NC1=C(C=C2C(=C1)C(=NC=N2)NC3=CC(=C(C=C3)F)Cl)OC4CCOC4 - possesses EGFR inhibitory activity
-   - CSCCOC1=C(OCCSC)C=C2C(=C1)N=CN=C2N(C)C1=CC=CC(C=C)=C1 - a molecule not described by the science, similar to Erlotinib, predicted as active by the model.
-
-## 📈 Conclusions
-
-- The **Random Forest** model effectively identifies key structural fragments of molecules responsible for EGFR inhibition.
-- Converting IC50 to a logarithmic scale (pIC50) improved the numerical stability of the model.
-- The application serves as a practical tool supporting medicinal chemists in rapid verification of new research hypotheses.
-
-## 📁 Repository Structure
-
-```text
-├── .python-version     # Python version pin (uv)
-├── 01_data_collection.py # ChEMBL API data extraction
-├── 02_eda_descriptors.py # Lipinski descriptors calculation
-├── 03_model_building.py # Random Forest Regressor training
-├── app.py              # Streamlit prediction dashboard
-├── requirements.txt    # Project dependencies
-├── uv.lock             # Lockfile for reproducible environment
-├── data/               # Bioactivity datasets
-└── outputs/            # Serialized models and scalers
+```bash
+uv sync
+uv run python 01_data_collection.py
+uv run python 02_eda_descriptors.py
+uv run python 03_model_building.py
+uv run streamlit run app.py
 ```
 
-## 📜 Acknowledgments
+The first script calls the ChEMBL API. Included CSV files let you start from descriptor calculation or training. The Streamlit app can use the saved model and variance selector in `outputs/`.
 
-Data derived from ChEMBL. This project is intended for **educational and research purposes only** and should not be used as a substitute for professional medical advice or clinical decision-making.
+Enter a SMILES string to see its molecular structure, descriptors and predicted pIC50. The app also converts the prediction to an estimated IC50 in nM. Its activity label is based on a pIC50 threshold of 6, not an experimental measurement.
 
----
+## Model and evaluation
 
-## 👨‍🔬Author
+Training removes low-variance fingerprint bits and fits 100 trees on an 80/20 random split with seed 42. The script prints R² and RMSE and saves a predicted-versus-observed plot to `outputs/model_performance.png`.
 
-Sebastian Lijewski
-PhD in Pharmaceutical Sciences
+## Limits
+
+The variance selector is currently fitted before the split. It should be fitted on training data only. A random split can also place similar structures in both sets; a scaffold split would be a more useful check of generalization.
+
+Cleaning retains one record per SMILES without reconciling assay conditions or measurement qualifiers. The descriptor script uses `pchembl_value` when available and otherwise converts nM measurements, but does not fill individual missing pChEMBL values. These choices need review before drawing conclusions about model quality.
+
+There is no applicability-domain estimate or external validation. A predicted active label does not establish EGFR inhibition, selectivity or usefulness as a drug candidate.
